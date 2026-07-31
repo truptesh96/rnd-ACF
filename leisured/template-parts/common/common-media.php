@@ -19,7 +19,7 @@ $video_id = 'video-' . wp_unique_id();
     $custom_video_mobile = get_sub_field('custom_video_mobile');
 ?>
 
-<div class="c-video-wrap c-media-wrap <?php echo esc_attr($class); ?>" <?php echo $media_overlay_style; ?>>
+<div class="c-video-wrap c-media <?php echo esc_attr($class); ?>" <?php echo $media_overlay_style; ?>>
 
     <?php if ($video_type != 'third-party') : ?>
 

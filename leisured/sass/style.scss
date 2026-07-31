@@ -104,7 +104,7 @@ header, footer, aside, section, .c-block { padding: var(--pt, 40px) var(--px, cl
     img, video { height: 100%; }
  }
 
-.c-media-wrap { position: relative; 
+.c-media { position: relative; 
 
     &.is-bg { @extend %abs-cover; }
     &:has(.mobile-img) .default-img { display: none; }
@@ -122,7 +122,7 @@ header, footer, aside, section, .c-block { padding: var(--pt, 40px) var(--px, cl
     --btn-border-color: #fff;
     --btn-hover-border-color: var(--clr-accent);
     --btn-outline-color: #fff;
-    --btn-border-radius: 50%;
+    --btn-radius: 50%;
     z-index: 3; top: 50%; left: 50%; transform: translate(-50%, -50%); height: clamp(44px, 6vw, 74px); width: clamp(44px, 6vw, 74px); backdrop-filter: blur(12px);
 }
 
@@ -202,9 +202,9 @@ dialog[open]::before { opacity: 1; transition-delay: 0s; }
     height: 100%; width: 100%; pointer-events: none; }
 
     &__body { transform: var(--body-transform-start, translate(0, 0)); background-color: var(--dialog-content-bg, #fff);
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); overflow: auto; pointer-events: auto;
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); overflow: auto; pointer-events: auto; padding: var(--dialog-padding, 24px);
         max-width: var(--dialog-content-width, clamp(240px, 96vw, 94%)); max-height: var(--dialog-content-height, 90%);
-        padding: var(--dialog-padding, 24px);
+       
     }
 
     &[open] &__panel { transform: var(--panel-transform-end, translate(0, 0));  }
@@ -222,7 +222,7 @@ dialog[open]::before { opacity: 1; transition-delay: 0s; }
 
 %btn { font: 400 var(--fs-body, 11px) / 1 var(--head-fonts); color: var(--btn-color, #fff); justify-content: center; transition: 0.5s ease background, 0.5s ease color, 0.5s ease border-color;
     background: var(--btn-bg, var(--clr-primary)); border: var(--border-width, 1px) var(--btn-border-color, var(--clr-primary)) solid; 
-    border-radius: var(--btn-border-radius, 0); text-decoration: none; display: inline-flex; align-items: center; justify-content: space-around; cursor: pointer;
+    border-radius: var(--btn-radius, 0); text-decoration: none; display: inline-flex; align-items: center; justify-content: space-around; cursor: pointer;
     min-width: var(--btn-min-width, 117px); padding: var(--btn-padding, 11px 12px 9px);
     
     &:hover { background: var(--btn-hover-bg, #fff); color: var(--btn-hover-color, var(--clr-primary)); border-color: var(--btn-hover-border-color, var(--clr-primary)); text-decoration: none; }
@@ -301,7 +301,6 @@ select { @extend %btn-reset; width: 100%; }
 .hide_summary { display: none; }
 
 .validation_message { color: var(--error-color, #f00); }
-
 .gfield_radio { display: flex; flex-wrap: wrap; row-gap: 8px; column-gap: 8px; }
 
 .c-content { max-width: var(--contx, 100%); --direction: column; --align: flex-start; --gapx: var(--content-gapx, 8px); width: 100%;
@@ -312,7 +311,8 @@ select { @extend %btn-reset; width: 100%; }
 
 }
 
-.c-media-wrap:has( + .c-content) { max-width: calc( ( 100% - var(--contx, 0) - var( --gapy, 0) ) ); }
+.c-media{ width: 100%; }
+.c-media:has( + .c-content) { max-width: calc( ( 100% - var(--contx, 0) - var( --gapy, 0) ) ); width: 100%; }
 
 
 .c-imgContent { --gapx: 32px; --content-gapx: 18px; }
@@ -383,9 +383,30 @@ select { @extend %btn-reset; width: 100%; }
 /*-------- Icons Updated ---------*/
 
 
+/*-------- Columns Grid ---------*/
+.c-grid { --gapx: 22px; --columns: 2; --gapy: 22px; }
+.c-grid__col { --colx: calc((100% - var(--gapy)*(var(--columns) - 1))/var(--columns)); width: 100%; max-width: var(--colx); }
 
 
+@include maxmedia(1280px) {
 
+    .c-grid__col { 
+        --colx: 50%;
+    }
+
+}
+
+
+@include maxmedia(767px) {
+
+    .c-grid__col { 
+        --colx: 100%;
+    }
+
+}
+
+
+/*-------- Columns Grid Ends ---------*/
 
 /*------------- Header CSS ----------*/
 
@@ -405,7 +426,8 @@ body:has(.c-head.is-sticky:not(.is-absolute)) {
     }
 
     &__logo { transform: translatex(42%); }
-    &.is-sticky { position: sticky; top: 0; left: 0; border-bottom: transparent; backdrop-filter: blur(6px); margin-top: calc(-1 * var(--header-height)); filter: none; border-bottom: none !important;
+    &.is-sticky { position: sticky; top: 0; left: 0; border-bottom: transparent; backdrop-filter: blur(6px); margin-top: calc(-1 * var(--header-height)); filter: none; 
+        border-bottom: none !important;
     animation: animateSticky 1.5s ease-in-out; }
 
     @include minmedia(1280px) {
@@ -430,7 +452,6 @@ body:has(.c-head.is-sticky:not(.is-absolute)) {
     }
 	
     .c-head__btns { visibility: hidden; opacity: 0; transition: 0s; }
-
     .c-nav { left: 0; visibility: visible;  }
 
 }
@@ -469,8 +490,6 @@ body:has(.c-head.is-sticky:not(.is-absolute)) {
         }
     }
 
-
-    
     &__submenu { transition: 0.7s ease all; width: 100%; left: -100%; position: absolute;  }
 
     &__submenu-arrow, &__link { left: 0; transition: .7s ease; position: relative; }
@@ -570,22 +589,4 @@ body:has(.c-head.is-sticky:not(.is-absolute)) {
 .swiper-chevron:hover {
     --swiper-navigation-color: #6fa84c;
 }
-
-.c-top-bar { padding: 11px 26px; font-size: clamp(0.750rem, calc(-1.250rem + 2.500vw), 1.000rem); line-height: calc(18/12); color: #6FA84C; text-align: center; background: #000; 
-        --swiper-navigation-size: 20px; --swiper-navigation-color: #6fa84c;
-
-    .swiper-chevron:hover {
-        --swiper-navigation-color: #fff;
-    }
-
-    .swiper-button-next, .swiper-button-prev { padding: 3px; }
-
-    &__wrap { max-width: 710px; margin: 0 auto; display: flex !important; align-items: center; justify-content: center; }
-    
-    .slick-track { display: flex; align-items: center; }
-
-    .c-slider:not(.slick-initialized) .c-slider__slide { display: none; }
-
-}
-
 /*------------- Header CSS Ends ----------*/

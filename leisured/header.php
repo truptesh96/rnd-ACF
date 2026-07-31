@@ -8,18 +8,32 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<header class="site-header c-head" role="banner">
+<header class="site-header c-head w-100" role="banner">
 
-	<div class="o-flex u-align-center">
+	<div class="c-head__head o-flex u-align-center u-space-between">
 		<button class="c-hamburger c-menu-toggle" aria-controls="primary-menu" aria-expanded="false"><span class="u-sr-text c-menu-toggle__label"><?php esc_html_e( 'Menu', 'publicmarketemeryville' ); ?></span></button>
 
-		<div class="site-branding">
-			<?php if ( function_exists( 'the_custom_logo' ) && has_custom_logo() ) : ?>
-				<div class="site-logo">
-					<?php the_custom_logo(); ?>
-				</div>
-			<?php endif; ?>
-		</div>
+		<a href="<?php echo home_url( '/' ); ?>" class="site-branding">
+			<span class="u-sr-text"><?php echo  bloginfo( 'name' ); ?></span>
+			<div class="c-head__logo">
+				<?php if ( get_field('site_logo', 'option') ): ?>
+					<?php echo get_field('site_logo', 'option'); ?>
+					<?php elseif ( !function_exists( 'the_custom_logo' ) && has_custom_logo() ) : the_custom_logo(); ?>
+				 <?php endif; ?>
+			</div>
+		</a>
+
+		<?php 
+			$register_link = get_field('register_link', 'option');
+			if($register_link) {
+				?>
+				<a href="<?php echo $register_link['url']; ?>" target="<?php echo $register_link['target']; ?>" class="c-register c-button">
+					<?php echo $register_link['title']; ?>
+				</a>
+			<?php
+			}
+		?>
+ 
 	</div>
 </header>
 
@@ -31,23 +45,7 @@
 				<?php get_template_part( 'template-parts/header', 'nav' ); ?>
 			</div>
 
-			<div class="c-social">
-			<?php 
-				if(have_rows('social_links', 'option')) {
-					while(have_rows('social_links', 'option')) {
-						the_row();
-						$social_link = get_sub_field('social_media_link');
-						$icon_image = get_sub_field('icon_image');
-						?>
-						<a href="<?php echo $social_link['url']; ?>" target="<?php echo $social_link['target']; ?>" class="c-social__item">
-							<i class="c-social__icon" aria-hidden="true"><?php echo $icon_image; ?></i>
-							<span class="c-social__text u-sr-text"><?php echo $social_link['title']; ?></span>
-						</a>
-					<?php
-					}
-				}
-			?>
-			</div>
+			 <?php get_template_part( 'template-parts/globals', 'social_links' ); ?>
 		</div>
 		<div class="c-nav__img"></div>
 		</div>

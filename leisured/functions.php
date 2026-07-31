@@ -79,3 +79,19 @@ if ( is_user_logged_in() ) {
 
 add_filter('gform_disable_css', '__return_true');
 add_filter('show_admin_bar', '__return_false');
+
+
+
+
+
+// ACF Block Render Callback Function
+function my_acf_block_render_callback( $block ) {
+    
+    // convert name ("acf/testimonial") into path friendly slug ("testimonial")
+    $slug = str_replace('acf/', '', $block['name']);
+    
+    // include a template part from within the "template-parts/block" folder
+    if( file_exists( get_theme_file_path("/template-parts/block/content-{$slug}.php") ) ) {
+        include( get_theme_file_path("/template-parts/block/content-{$slug}.php") );
+    }
+}

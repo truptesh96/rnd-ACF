@@ -1,5 +1,3 @@
-/*-------------- Accessibility --------------*/
-
 /*-------------- Accordion Ends --------------*/
 
 /*------- Scroll Out JS ---------*/
@@ -77,11 +75,31 @@ document.addEventListener('click', (e) => {
 		(menuLabelEl.innerText === "Menu") ? menuOpen() : menuClose();
 	});
 
+  // Header Color Switcher
+
+  $('.c-block').each(function () {
+    
+   
+  });
+
+
+  function headerSkinSwitcher() {
+
+  }
+
+
+  headerSkinSwitcher();
+
+  $(window).on('scroll, resize', function () {
+    headerSkinSwitcher();
+  });
+
+
 })();
 // Header JS Ends
  
 	function smoothScroll() {
-		ScrollOut({ targets: '.anim, .c-media-wrap', onShown(el) { el.classList.add("in"); } });
+		ScrollOut({ targets: '.anim, .c-media', onShown(el) { el.classList.add("in"); } });
 		ScrollOut({ targets: '[data-srcset]', onShown(el) { el.setAttribute('srcset', el.dataset.srcset); } }); 
 		ScrollOut({ targets: '.custom-video.autoplay',
 			onShown(video) {
@@ -125,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       // add animation class
-      if (el.classList.contains('anim') || el.classList.contains('c-media-wrap') ) {
+      if (el.classList.contains('anim') || el.classList.contains('c-media') ) {
         el.classList.add('in');
       }
 
@@ -185,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
     observer.observe(el);
   });
 
-  document.querySelectorAll('.c-media-wrap, .anim').forEach(el => {
+  document.querySelectorAll('.c-media, .anim').forEach(el => {
     observer.observe(el);
   });
 
