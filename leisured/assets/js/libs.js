@@ -18,6 +18,68 @@ var ScrollOut=function(){"use strict";function e(e,t,n){return e<t?t:n<e?n:e}fun
   }
   requestAnimationFrame(raf);
 
+
+
+/**
+ * Custom Lenis scroll speed / parallax effect.
+ *
+ * data-scroll-speed="0.8" = slower movement
+ * data-scroll-speed="1"   = normal movement
+ * data-scroll-speed="1.5" = faster movement
+ */
+
+function initScrollSpeed(lenisInstance) {
+    if (!lenisInstance) return;
+    const elements = document.querySelectorAll('[data-scroll-speed]');
+    if (!elements.length) return;
+    const items = Array.from(elements).map((element) => ( { element, speed: parseFloat(element.dataset.scrollSpeed) || 1, startTop: 0, height: 0, currentY: 0, targetY: 0 }
+));
+
+function updatePositions() {
+  items.forEach((item) => { const rect = item.element.getBoundingClientRect(); item.startTop = rect.top + window.scrollY; item.height = rect.height; }
+); }
+
+  function updateScroll() {
+      const scrollY = lenisInstance.scroll;
+      items.forEach((item) => {
+          const elementTop = item.startTop - scrollY;
+          const viewportCenter = window.innerHeight / 2;
+          const elementCenter = elementTop + item.height / 2;
+
+          item.targetY =
+            (viewportCenter - elementCenter) * (item.speed - 1) * -0.15;
+            item.currentY += (item.targetY - item.currentY) * 0.12;
+            item.element.style.transform = `translate3d(0, ${item.currentY.toFixed(2)}px, 0)`;
+      });
+  }
+
+  function raf() {
+    updateScroll(); requestAnimationFrame(raf);
+  }
+
+  updatePositions();
+  lenisInstance.on('scroll', updateScroll);
+  window.addEventListener('resize', updatePositions);
+
+  raf();
+
+  return {
+      refresh: updatePositions,
+      destroy() {
+          lenisInstance.off('scroll', updateScroll);
+          window.removeEventListener('resize', updatePositions);
+
+          items.forEach((item) => {
+              item.element.style.transform = '';
+          });
+      }
+  };
+}
+
+// Use your existing Lenis instance:
+const scrollSpeedEffect = initScrollSpeed(lenis);
+
+
 // #links Management
 const headOffset = -1;
 if (window.location.hash) {
@@ -77,22 +139,85 @@ document.addEventListener('click', (e) => {
 
   // Header Color Switcher
 
-  $('.c-block').each(function () {
-    
-   
-  });
+  const header = document.querySelector('.c-head');
+	const sections = document.querySelectorAll('.c-block, .c-foot__right, .c-foot__newsletter__content');
 
+	function getBrightness(rgb) {
+		const result = rgb.match(/\d+/g);
+		if (!result) return 255;
+		const r = parseInt(result[0]);
+		const g = parseInt(result[1]);
+		const b = parseInt(result[2]);
+		return (r * 299 + g * 587 + b * 114) / 1000;
+	}
 
-  function headerSkinSwitcher() {
+	function getEffectiveBg(el) {
+		while (el && el !== document) {
+			const bg = window.getComputedStyle(el).backgroundColor;
+			if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
+				return bg;
+			}
+			el = el.parentElement;
+		}
+		return 'rgb(255, 255, 255)';
+	}
 
-  }
+	function getSkinType(el) {
+		const bg = getEffectiveBg(el);
+		const brightness = getBrightness(bg);
+		return brightness > 155 ? 'light' : 'dark';
+	}
+	sections.forEach((el) => {
+		const type = getSkinType(el);
+		el.classList.remove('light-bg', 'dark-bg');
+		el.classList.add(type === 'light' ? 'light-bg' : 'dark-bg');
+	});
 
+	function getCurrentSection() {
+		const headerHeight = header.offsetHeight;
 
-  headerSkinSwitcher();
+		for (let el of sections) {
+			const rect = el.getBoundingClientRect();
 
-  $(window).on('scroll, resize', function () {
-    headerSkinSwitcher();
-  });
+			if (rect.top <= headerHeight && rect.bottom > headerHeight) {
+				return el;
+			}
+		}
+		return null;
+	}
+
+	let currentSkin = '';
+
+	function updateHeaderSkin() {
+
+    jQuery('body').css('--head-offest', jQuery('.c-head').outerHeight()+'px');
+		
+		const current = getCurrentSection();
+		if (!current) return;
+
+		const newSkin = current.classList.contains('light-bg')
+			? 'dark-skin'
+			: 'light-skin';
+
+		if (newSkin !== currentSkin) {
+			header.classList.remove('light-skin', 'dark-skin');
+			header.classList.add(newSkin);
+			currentSkin = newSkin;
+		}
+
+		if ( window.scrollY > (window.innerHeight) ) {
+			header.classList.add('is-sticky');
+		} else {
+			header.classList.remove('is-sticky');
+		}
+	}
+
+	if (typeof lenis !== 'undefined') {
+		lenis.on('scroll', updateHeaderSkin);
+	} else {
+		window.addEventListener('scroll', updateHeaderSkin);
+	}
+	window.addEventListener('load', updateHeaderSkin);
 
 
 })();
@@ -276,11 +401,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.custom-video').forEach(video => {
 
             if (video === currentVideo) {
-                return;
+              return;
             }
 
             if (video.classList.contains('autoplay')) {
-                return;
+              return;
             }
 
             video.pause();
@@ -291,9 +416,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const button = wrapper.querySelector('.play-btn');
 
             if (button) {
-                button.classList.remove('is-playing');
-                button.setAttribute('aria-label', 'Play video');
-                button.setAttribute('aria-pressed', 'false');
+              button.classList.remove('is-playing');
+              button.setAttribute('aria-label', 'Play video');
+              button.setAttribute('aria-pressed', 'false');
             }
 
         });
@@ -478,6 +603,202 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /*-------------- Accordion Starts --------------*/
+ 
+jQuery(function ($) {
+
+    $('.c-faqs').each(function () {
+
+        var $faq = $(this);
+        var $items = $faq.find('.c-faqs__item');
+
+        /*
+         * FAQ settings
+         */
+        var isOneOpen   = $faq.hasClass('oneOpen');
+        var isAnyOpen   = $faq.hasClass('anyOpen');
+        var isFirstOpen = $faq.hasClass('firstOpen');
+        var isAllClosed = $faq.hasClass('allClosed');
+
+
+        /*
+         * Open FAQ
+         */
+        function openFaq($item, animate) {
+
+            var $question = $item.find('.c-faqs__question').first();
+            var $answer = $item.find('.c-faqs__answer').first();
+
+            /*
+             * Update state
+             */
+            $item.addClass('is-open');
+
+            $question.attr('aria-expanded', 'true');
+
+            $answer.attr('aria-hidden', 'false');
+
+
+            /*
+             * Animation
+             */
+            if (animate) {
+
+                $answer
+                    .stop(true, true)
+                    .slideDown(350);
+
+            } else {
+
+                $answer.show();
+
+            }
+        }
+
+
+        /*
+         * Close FAQ
+         */
+        function closeFaq($item, animate) {
+
+            var $question = $item.find('.c-faqs__question').first();
+            var $answer = $item.find('.c-faqs__answer').first();
+
+            /*
+             * Update state
+             */
+            $item.removeClass('is-open');
+
+            $question.attr('aria-expanded', 'false');
+
+            $answer.attr('aria-hidden', 'true');
+
+
+            /*
+             * Animation
+             */
+            if (animate) {
+
+                $answer
+                    .stop(true, true)
+                    .slideUp(350);
+
+            } else {
+
+                $answer.hide();
+
+            }
+        }
+
+
+        /*
+         * Close all FAQs except selected one
+         */
+        function closeOtherFaqs($currentItem) {
+
+            if (!isOneOpen) {
+                return;
+            }
+
+            $items.each(function () {
+
+                var $item = $(this);
+
+                if ($item[0] !== $currentItem[0]) {
+
+                    closeFaq($item, true);
+
+                }
+
+            });
+        }
+
+
+        /*
+         * Toggle FAQ
+         */
+        function toggleFaq($item) {
+
+            /*
+             * If already open → close it
+             */
+            if ($item.hasClass('is-open')) {
+
+                closeFaq($item, true);
+
+                return;
+            }
+
+
+            /*
+             * oneOpen
+             *
+             * Close all other FAQs first.
+             */
+            closeOtherFaqs($item);
+
+
+            /*
+             * Open selected FAQ
+             */
+            openFaq($item, true);
+        }
+
+
+        /*
+         * Initial state
+         */
+        $items.each(function () {
+
+            closeFaq($(this), false);
+
+        });
+
+
+        /*
+         * First FAQ open by default
+         *
+         * firstOpen takes priority over allClosed
+         */
+        if (
+            isFirstOpen &&
+            !isAllClosed &&
+            $items.length
+        ) {
+
+            openFaq($items.first(), false);
+
+        }
+
+
+        /*
+         * Click
+         */
+        $items.find('.c-faqs__question').on('click', function () {
+
+            var $item = $(this).closest('.c-faqs__item');
+
+            toggleFaq($item);
+
+        });
+
+
+        /*
+         * Keyboard accessibility
+         *
+         * Native <button> already supports:
+         *
+         * Enter
+         * Space
+         *
+         * So we don't need custom keydown handling.
+         *
+         * This is intentionally left empty.
+         */
+
+
+    });
+
+});
 
 /*-------------- Accordion Ends --------------*/
 

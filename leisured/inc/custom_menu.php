@@ -11,18 +11,21 @@ function get_menu_items_by_identifier($menu) {
 
     // Theme location support
     $locations = get_nav_menu_locations();
+
     if (isset($locations[$menu])) {
         return wp_get_nav_menu_items((int) $locations[$menu]);
     }
 
     // Slug or menu name
     $menu_obj = wp_get_nav_menu_object($menu);
+
     if ($menu_obj && ! is_wp_error($menu_obj)) {
         return wp_get_nav_menu_items((int) $menu_obj->term_id);
     }
 
     return false;
 }
+
 
 /**
  * Convert flat menu list into tree structure
@@ -40,7 +43,11 @@ function build_menu_tree(array $items) {
 
     // Build hierarchy
     foreach ($indexed as $item) {
-        if (! empty($item->menu_item_parent) && isset($indexed[$item->menu_item_parent])) {
+
+        if (
+            ! empty($item->menu_item_parent) &&
+            isset($indexed[$item->menu_item_parent])
+        ) {
             $indexed[$item->menu_item_parent]->children[] = $item;
         } else {
             $tree[] = $item;
@@ -50,21 +57,35 @@ function build_menu_tree(array $items) {
     return $tree;
 }
 
+
 /**
  * Render accessible menu
  *
+ * Supports up to 5 menu levels.
+ *
  * Usage:
+ *
+ * $items = get_menu_items_by_identifier('primary');
+ * $menu_tree = build_menu_tree($items);
  * render_accessible_menu($menu_tree, 0, 'e-head-nav');
- * render_accessible_menu($menu_tree, 0, 'c-foot-nav');
  */
-function render_accessible_menu(array $items, $depth = 0, $menu_prefix = 'c-nav') {
+function render_accessible_menu(
+    array $items,
+    $depth = 0,
+    $menu_prefix = 'c-nav'
+) {
 
-    if (empty($items) || $depth > 3) {
+    // Level 5 = depth 4.
+    // Stop anything deeper than level 5.
+    if (empty($items) || $depth > 5) {
         return;
     }
 
     $level = $depth + 1;
-    $role  = ($depth === 0) ? 'menubar' : 'menu';
+
+    $role = ($depth === 0)
+        ? 'menubar'
+        : 'menu';
 
     $ul_classes = [
         $menu_prefix . '__level',
@@ -75,29 +96,62 @@ function render_accessible_menu(array $items, $depth = 0, $menu_prefix = 'c-nav'
         $ul_classes[] = $menu_prefix . '__submenu';
     }
 
-    echo '<ul class="' . esc_attr(implode(' ', $ul_classes)) . '" role="' . esc_attr($role) . '">';
+    echo '<ul class="' .
+        esc_attr(implode(' ', $ul_classes)) .
+        '" role="' .
+        esc_attr($role) .
+        '">';
 
     foreach ($items as $item) {
 
         $has_children = ! empty($item->children);
-        $classes      = is_array($item->classes) ? $item->classes : [];
 
-        $is_current = in_array('current-menu-item', $classes, true)
-            || in_array('current-menu-ancestor', $classes, true);
+        /**
+         * WordPress custom classes
+         *
+         * These are the classes entered under:
+         *
+         * Appearance → Menus → CSS Classes
+         */
+        $classes = is_array($item->classes)
+            ? array_filter($item->classes)
+            : [];
 
-        /* ---------------------------
-         * <li> classes (unchanged)
-         * --------------------------- */
+        /**
+         * Current item / ancestor
+         */
+        $is_current =
+            in_array('current-menu-item', $classes, true) ||
+            in_array('current-menu-ancestor', $classes, true);
+
+        /**
+         * --------------------------------
+         * <li> classes
+         * --------------------------------
+         */
         $li_classes = [
             $menu_prefix . '__item',
             $menu_prefix . '__item--level-' . $level,
         ];
 
-        echo '<li class="' . esc_attr(implode(' ', $li_classes)) . '" role="none">';
+        /**
+         * Optional:
+         * Add a class to the <li> when it has children.
+         */
+        if ($has_children) {
+            $li_classes[] = $menu_prefix . '__item--has-children';
+        }
 
-        /* ---------------------------
+        echo '<li class="' .
+            esc_attr(implode(' ', $li_classes)) .
+            '" role="none">';
+
+
+        /**
+         * --------------------------------
          * <a> classes
-         * --------------------------- */
+         * --------------------------------
+         */
         $link_classes = [
             $menu_prefix . '__link',
             $menu_prefix . '__link--level-' . $level,
@@ -107,13 +161,26 @@ function render_accessible_menu(array $items, $depth = 0, $menu_prefix = 'c-nav'
             $link_classes[] = 'is-active';
         }
 
-        // Add custom classes from WP menu admin
-        $custom_link_classes = array_filter($classes);
-        $link_classes        = array_merge($link_classes, $custom_link_classes);
+        /**
+         * Add custom classes from:
+         *
+         * Appearance → Menus → CSS Classes
+         */
+        $link_classes = array_merge(
+            $link_classes,
+            $classes
+        );
 
-        /* ---------------------------
-         * Optional link attributes
-         * --------------------------- */
+        $link_classes = array_unique(
+            array_filter($link_classes)
+        );
+
+
+        /**
+         * --------------------------------
+         * Link attributes
+         * --------------------------------
+         */
         $target = ! empty($item->target)
             ? ' target="' . esc_attr($item->target) . '"'
             : '';
@@ -126,26 +193,114 @@ function render_accessible_menu(array $items, $depth = 0, $menu_prefix = 'c-nav'
             ? ' rel="' . esc_attr($item->xfn) . '"'
             : '';
 
+        $aria_attributes = '';
+
+        if ($has_children) {
+            $aria_attributes =
+                ' aria-haspopup="true"' .
+                ' aria-expanded="false"';
+        }
+
+
+        /**
+         * --------------------------------
+         * Link
+         * --------------------------------
+         */
         echo '<a
-            class="' . esc_attr(implode(' ', array_unique($link_classes))) . '"
+            class="' . esc_attr(implode(' ', $link_classes)) . '"
             href="' . esc_url($item->url) . '"
             role="menuitem"' .
             $target .
             $title .
             $rel .
-            ($has_children ? ' aria-haspopup="true" aria-expanded="false"' : '') .
+            $aria_attributes .
         '>';
 
-        
-        echo '<span class="' . esc_attr($menu_prefix) . '__label">' . esc_html($item->title) . '</span>';
-        echo '<span hidden class=" hover-state ' . esc_attr($menu_prefix) . '__label">' . esc_html($item->title) . '</span>';
-    
+
+        /**
+         * --------------------------------
+         * Label
+         * --------------------------------
+         */
+        echo '<span class="' .
+            esc_attr($menu_prefix) .
+            '__label">' .
+            esc_html($item->title) .
+            '</span>';
+
+        echo '<span hidden class="hover-state ' .
+            esc_attr($menu_prefix) .
+            '__label">' .
+            esc_html($item->title) .
+            '</span>';
+
 
         echo '</a>';
 
-        // Children
-        if ($has_children) {
-            render_accessible_menu($item->children, $depth + 1, $menu_prefix);
+
+        /**
+         * --------------------------------
+         * Description
+         * --------------------------------
+         *
+         * WordPress stores the menu item's
+         * Description separately from CSS classes.
+         */
+        if (! empty($item->description)) {
+
+            /**
+             * Base description classes.
+             */
+            $description_classes = [
+                $menu_prefix . '__description',
+                $menu_prefix . '__description--level-' . $level,
+            ];
+
+            /**
+             * Optional custom description classes.
+             *
+             * You can modify these with:
+             *
+             * add_filter(
+             *     'accessible_menu_description_classes',
+             *     function ($classes, $item, $level) {
+             *         ...
+             *     },
+             *     10,
+             *     3
+             * );
+             */
+            $description_classes = apply_filters(
+                'accessible_menu_description_classes',
+                $description_classes,
+                $item,
+                $level
+            );
+
+            echo '<div class="' .
+                esc_attr(implode(' ', array_unique(array_filter($description_classes)))) .
+                '">';
+
+            echo wp_kses_post($item->description);
+
+            echo '</div>';
+        }
+
+
+        /**
+         * --------------------------------
+         * Children
+         * --------------------------------
+         *
+         * Recursively render up to level 5.
+         */
+        if ($has_children && $depth < 4) {
+            render_accessible_menu(
+                $item->children,
+                $depth + 1,
+                $menu_prefix
+            );
         }
 
         echo '</li>';

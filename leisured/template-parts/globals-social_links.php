@@ -5,11 +5,14 @@
             the_row();
             $social_link = get_sub_field('social_link');
             $icon_code = get_sub_field('icon_code');
-          
             ?>
             <a href="<?php echo $social_link['url']; ?>" target="_blank" class="c-social__item">
-                <i class="c-social__icon" aria-hidden="true"><?php echo $icon_code; ?></i>
-                <span class="c-social__text u-sr-text"><?php echo $social_link['title']; ?></span>
+                <?php if($icon_code): ?>
+                  <i class="c-social__icon" aria-hidden="true"><?php echo $icon_code; ?></i>
+                <?php endif; ?>
+                  <?php if($social_link['title']): ?>
+                  <span class="c-social__text u-sr-text"><?php echo $social_link['title']; ?></span>
+                <?php endif; ?>
             </a>
         <?php
         }
@@ -31,7 +34,6 @@
 <div class="c-dialog__body" data-lenis-prevent="true">
 <h2 class="e-title c-dialog__form-head">Form headline would be placed here.</h2>
 Lorem ipsum dolor sit amet elit. Mauris venenatis, mi nec posuere purus ipsum posuere sapien, vitae pretium nunc ipsum eget ex. Etiam venenatis tempus urna, sed tempor arcu.
-
  </div> 
 </div>
  
@@ -150,3 +152,8 @@ Lorem ipsum dolor sit amet elit. Mauris venenatis, mi nec posuere purus ipsum po
 })();
 
 </script>
+
+
+We found some URLs with ID kind of structure which is not good for SEO.
+Old Stucture: https://www.prioritydispatch.net/en/news-center/3FC31817-B2FD-439A-BE58-88AE32EBDB8B
+Recommended Structure: https://prioritydispatch.provenlayout.com/news-center/35000-dd-cpr-course-completions/

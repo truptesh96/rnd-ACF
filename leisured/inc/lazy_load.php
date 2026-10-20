@@ -16,8 +16,8 @@ function custom_lazy_image( $attachment_id, $size = 'large', $attributes = array
         'data-srcset' => $srcset,
         'data-sizes'  => $sizes,
         'alt'         => $alt,
-        'width'       => $image_data[1], // width from wp_get_attachment_image_src
-        'height'      => $image_data[2], // height from wp_get_attachment_image_src
+        'width'       => $image_data[1],
+        'height'      => $image_data[2],
     );
 
     $all_attrs = array_merge( $default_attrs, $attributes );

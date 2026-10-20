@@ -45,7 +45,7 @@
 				<?php get_template_part( 'template-parts/header', 'nav' ); ?>
 			</div>
 
-			 <?php get_template_part( 'template-parts/globals', 'social_links' ); ?>
+			
 		</div>
 		<div class="c-nav__img"></div>
 		</div>

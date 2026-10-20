@@ -17,21 +17,23 @@
      <div class="c-content__head">
         <?php if($subheading_tag === $heading_tag): ?>
         <<?php echo esc_html($heading_tag); ?>>
-            <span class="<?php echo esc_attr($subHeadingClass); ?>"><?php echo $subheading; ?></span>
             <span class="<?php echo esc_attr($headingClass); ?>"><?php echo $heading; ?></span>
+             <span class="<?php echo esc_attr($subHeadingClass); ?>"><?php echo $subheading; ?></span>
         </<?php echo esc_html($heading_tag); ?>>
         <?php else: ?>
-            <?php if ($subheading) : ?>
-                <<?php echo esc_html($subheading_tag); ?> class="<?php echo esc_attr($subHeadingClass); ?>">
-                    <?php echo $subheading; ?>
-                </<?php echo esc_html($subheading_tag); ?>>
-            <?php endif; ?>
 
             <?php if ($heading) : ?>
                 <<?php echo esc_html($heading_tag); ?> class="<?php echo esc_attr($headingClass); ?>">
                     <?php echo $heading; ?>
                 </<?php echo esc_html($heading_tag); ?>>
             <?php endif; ?>
+
+            <?php if ($subheading) : ?>
+                <<?php echo esc_html($subheading_tag); ?> class="<?php echo esc_attr($subHeadingClass); ?>">
+                    <?php echo $subheading; ?>
+                </<?php echo esc_html($subheading_tag); ?>>
+            <?php endif; ?>
+
         <?php endif; ?>
     </div>
 <?php if ($content) : ?>

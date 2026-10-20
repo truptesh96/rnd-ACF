@@ -14,34 +14,11 @@ require_once LEISURED_THEME_DIR . '/inc/customizer.php';
 require_once LEISURED_THEME_DIR . '/inc/helpers.php';
  
 
-
 /*----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------
 Custom Functions
 ----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------*/
-
-// Hook For converting Gravity Form submit input to Button
-add_filter( 'gform_submit_button', 'form_submit_button', 10, 2 );
-function form_submit_button( $button, $form ) {
-    $dom = new DOMDocument();
-    $dom->loadHTML( '<?xml encoding="utf-8" ?>' . $button );
-    $input = $dom->getElementsByTagName( 'input' )->item( 0 );
-    $button_text = $input->getAttribute( 'value' );
-    
-    $attributes = [];
-    $custom_classes = 'c-button';
-    foreach ( $input->attributes as $attr ) {
-        if ( $attr->name === 'class' ) {
-            $attributes[] = 'class="' . $attr->value . ' ' . $custom_classes . '"';
-        } elseif ( $attr->name !== 'value' && $attr->name !== 'id' ) {
-            $attributes[] = $attr->name . '="' . $attr->value . '"';
-        }
-    }
-    
-    return "<button class='{$custom_classes}' id='gform_submit_button_{$form['id']}' " . implode( ' ', $attributes ) . "><span class='c-button__label'>{$button_text}</span></button>";
-}
-
 
 require get_template_directory() . '/inc/custom_functions.php';
 
@@ -95,3 +72,49 @@ function my_acf_block_render_callback( $block ) {
         include( get_theme_file_path("/template-parts/block/content-{$slug}.php") );
     }
 }
+
+
+
+
+
+
+
+
+
+
+//*----------------- Not a part of defult setup -----------------*//
+
+function update_team_title_with_user_id($post_id, $post, $update) {
+
+    // Don't run for revisions, autosaves, or auto-drafts
+    if (
+        wp_is_post_revision($post_id) ||
+        wp_is_post_autosave($post_id) ||
+        $post->post_status === 'auto-draft'
+    ) {
+        return;
+    }
+
+    // Only update if the ID isn't already in the title
+    $suffix = ' u-' . $post_id;
+
+    if (str_ends_with($post->post_title, $suffix)) {
+        return;
+    }
+
+    $new_title = $post->post_title . $suffix;
+
+    remove_action('save_post_profile', 'update_team_title_with_user_id', 10);
+
+    wp_update_post([
+        'ID'         => $post_id,
+        'post_title' => $new_title,
+        'post_name'  => sanitize_title($new_title),
+    ]);
+
+    add_action('save_post_profile', 'update_team_title_with_user_id', 10, 3);
+}
+
+add_action('save_post_profile', 'update_team_title_with_user_id', 10, 3);
+
+//*----------------- Not a part of defult setup Ends -----------------*//
